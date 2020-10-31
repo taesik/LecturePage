@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.spring.client.board.dao.BoardDAO">
+	
+	<!-- 게시판 리스트 기본 조회 -->
+	<select id="boardList" parameterType="board" resultType="board">
+		select b_num, b_name, b_title, to_char(b_date,'YYYY-MM-DD') as b_date
+		from spring_board
+		order by b_num desc
+	</select>
+	
+	<!-- 게시물 등록 방법 1 
+	<insert id="boardInsert" parameterType="board">
+		insert into spring_board(b_num, b_name, b_pwd, b_title, b_content)
+		values(spring_board_seq.nextval, #{b_name}, #{b_pwd}, #{b_title}, #{b_content})
+	</insert> -->
+	
+	<!-- 게시물 등록 방법 2 -->
+	<insert id="boardInsert" parameterType="board">
+		/* Board - boardInsert 자바쪽 처리라 자바주석문 허용
+		order=before은 인서트 처리전 셀렉트를 먼저 실행하겠단 뜻 */
+		<selectKey keyProperty="b_num" resultType="int" order="BEFORE">
+			select spring_board_seq.nextval from dual
+		</selectKey>
+		
+		insert into spring_board(b_num, b_name, b_pwd, b_title, b_content)
+		values(#{b_num}, #{b_name}, #{b_pwd}, #{b_title}, #{b_content})
+	</insert>
+	
+	<!-- 상세 페이지를 위한 게시물 조회 -->
+	<select id="boardDetail" parameterType="board" resultType="board">
+		select b_num, b_name, b_title, b_content, to_char(b_date,'YYYY-MM-DD HH24:MI:SS') as b_date
+		from spring_board
+		where b_num=#{b_num}
+	</select>
+	
+	<!-- 해당번호의 비밀번호 확인 -->
+	<select id="pwdConfirm" parameterType="board" resultType="int">
+	SELECT NVL((SELECT 1 from spring_board where b_num = #{b_num} AND b_pwd = #{b_pwd}
+	),0) as state
+	From dual
+	</select>
+	
+</mapper>
